@@ -61,6 +61,7 @@ Servo::Servo(const rclcpp::Node::SharedPtr& node, std::shared_ptr<const servo::P
   , logger_(moveit::getLogger("moveit.ros.servo"))
   , servo_param_listener_{ std::move(servo_param_listener) }
   , planning_scene_monitor_{ planning_scene_monitor }
+  , expected_command_type_(CommandType::POSE)
 {
   servo_params_ = servo_param_listener_->get_params();
 
