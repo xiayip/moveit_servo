@@ -69,6 +69,7 @@ ServoNode::ServoNode(const rclcpp::NodeOptions& options)
   , new_joint_jog_msg_{ false }
   , new_twist_msg_{ false }
   , new_pose_msg_{ false }
+  , ee2base_tf_{ std::nullopt }
 {
   moveit::setNodeLoggerName(node_->get_name());
 
@@ -140,6 +141,13 @@ ServoNode::ServoNode(const rclcpp::NodeOptions& options)
         return pauseServo(request, response);
       });
 
+  // Create service to record current state
+  record_ee2base_tf_ = node_->create_service<zwind_msgs::srv::RecordEndEffectorTF>(
+      "~/record_ee2base_tf", [this](const std::shared_ptr<zwind_msgs::srv::RecordEndEffectorTF::Request>& request,
+                                   const std::shared_ptr<zwind_msgs::srv::RecordEndEffectorTF::Response>& response) {
+        return recordEndEffectorTF(request, response);
+      });
+
   // Start the servoing loop
   servo_loop_thread_ = std::thread(&ServoNode::servoLoop, this);
 }
@@ -192,6 +200,21 @@ void ServoNode::switchCommandType(const std::shared_ptr<zwind_msgs::srv::ServoCo
     RCLCPP_WARN_STREAM(node_->get_logger(), "Unknown command type " << request->command_type << " requested");
   }
   response->success = (request->command_type == static_cast<int8_t>(servo_->getCommandType()));
+}
+
+void ServoNode::recordEndEffectorTF(const std::shared_ptr<zwind_msgs::srv::RecordEndEffectorTF::Request>& request,
+                                  const std::shared_ptr<zwind_msgs::srv::RecordEndEffectorTF::Response>& response)
+{
+  std::lock_guard<std::mutex> lock_guard(lock_);
+  if (request->clear_recording)
+  {
+    ee2base_tf_ = std::nullopt;
+    RCLCPP_INFO_STREAM(node_->get_logger(), "Cleared recorded end-effector to base transform.");
+  } else {
+    ee2base_tf_ = request->ee2base_tf;
+    RCLCPP_INFO_STREAM(node_->get_logger(), "Recorded end-effector to base transform.");
+  }
+  response->success = true;
 }
 
 void ServoNode::jointJogCallback(const control_msgs::msg::JointJog::ConstSharedPtr& msg)
@@ -298,6 +321,10 @@ std::optional<KinematicState> ServoNode::processPoseCommand(const moveit::core::
                              rclcpp::Duration::from_seconds(servo_params_.incoming_command_timeout);
   if (!command_stale)
   {
+    if (ee2base_tf_.has_value())
+    {
+      tf2::doTransform(latest_pose_, latest_pose_, ee2base_tf_.value());
+    }
     const PoseCommand command = poseFromPoseStamped(latest_pose_);
     next_joint_state = servo_->getNextJointState(robot_state, command);
     if (servo_->getStatus() == StatusCode::INVALID)
