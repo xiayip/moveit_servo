@@ -127,6 +127,9 @@ ServoNode::ServoNode(const rclcpp::NodeOptions& options)
   status_publisher_ =
       node_->create_publisher<zwind_msgs::msg::ServoStatus>(servo_params_.status_topic, rclcpp::SystemDefaultsQoS());
 
+  // Create debug pose publisher
+  debug_pose_publisher_ = node_->create_publisher<geometry_msgs::msg::PoseStamped>("~/debug_pose", rclcpp::SystemDefaultsQoS());
+
   // Create service to enable switching command type
   switch_command_type_ = node_->create_service<zwind_msgs::srv::ServoCommandType>(
       "~/switch_command_type", [this](const std::shared_ptr<zwind_msgs::srv::ServoCommandType::Request>& request,
@@ -325,6 +328,8 @@ std::optional<KinematicState> ServoNode::processPoseCommand(const moveit::core::
     {
       tf2::doTransform(latest_pose_, latest_pose_, ee2base_tf_.value());
     }
+    // Publish transformed pose for debugging
+    debug_pose_publisher_->publish(latest_pose_);
     const PoseCommand command = poseFromPoseStamped(latest_pose_);
     next_joint_state = servo_->getNextJointState(robot_state, command);
     if (servo_->getStatus() == StatusCode::INVALID)

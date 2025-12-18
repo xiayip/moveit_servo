@@ -128,6 +128,7 @@ private:
   rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr multi_array_publisher_;
   rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr trajectory_publisher_;
   rclcpp::Publisher<zwind_msgs::msg::ServoStatus>::SharedPtr status_publisher_;
+  rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr debug_pose_publisher_;
 
   rclcpp::Service<zwind_msgs::srv::ServoCommandType>::SharedPtr switch_command_type_;
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr pause_servo_;
