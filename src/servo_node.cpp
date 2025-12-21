@@ -324,10 +324,14 @@ std::optional<KinematicState> ServoNode::processPoseCommand(const moveit::core::
                              rclcpp::Duration::from_seconds(servo_params_.incoming_command_timeout);
   if (!command_stale)
   {
-    if (ee2base_tf_.has_value())
+    if (!ee2base_tf_.has_value())
     {
-      tf2::doTransform(latest_pose_, latest_pose_, ee2base_tf_.value());
+      RCLCPP_WARN_STREAM(node_->get_logger(),
+                         "No end-effector to base transform recorded. Cannot process pose command.");
+      new_pose_msg_ = false;
+      return next_joint_state;
     }
+    tf2::doTransform(latest_pose_, latest_pose_, ee2base_tf_.value());
     // Publish transformed pose for debugging
     debug_pose_publisher_->publish(latest_pose_);
     const PoseCommand command = poseFromPoseStamped(latest_pose_);
