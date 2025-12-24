@@ -133,16 +133,35 @@ Servo::Servo(const rclcpp::Node::SharedPtr& node, std::shared_ptr<const servo::P
 Servo::~Servo()
 {
   setCollisionChecking(false);
+  
+  // Explicitly reset smoother before destroying the loader
+  if (smoother_)
+  {
+    RCLCPP_INFO(logger_, "Resetting smoother plugin...");
+    smoother_.reset();
+  }
+  
+  // Now it's safe to destroy the class loader
+  if (smoothing_loader_)
+  {
+    RCLCPP_INFO(logger_, "Destroying smoothing class loader...");
+    smoothing_loader_.reset();
+  }
+  
+  RCLCPP_INFO(logger_, "Servo cleanup complete");
 }
 
 void Servo::setSmoothingPlugin()
 {
+  RCLCPP_INFO(logger_, "Loading smoothing plugin: %s", servo_params_.smoothing_filter_plugin_name.c_str());
+  
   // Load the smoothing plugin
   try
   {
-    pluginlib::ClassLoader<online_signal_smoothing::SmoothingBaseClass> smoothing_loader(
+    smoothing_loader_ = std::make_unique<pluginlib::ClassLoader<online_signal_smoothing::SmoothingBaseClass>>(
         "moveit_core", "online_signal_smoothing::SmoothingBaseClass");
-    smoother_ = smoothing_loader.createUniqueInstance(servo_params_.smoothing_filter_plugin_name);
+    smoother_ = smoothing_loader_->createUniqueInstance(servo_params_.smoothing_filter_plugin_name);
+    RCLCPP_INFO(logger_, "Smoothing plugin instance created successfully");
   }
   catch (pluginlib::PluginlibException& ex)
   {

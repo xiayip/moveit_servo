@@ -229,6 +229,9 @@ private:
   std::atomic<double> collision_velocity_scale_ = 1.0;
   std::unique_ptr<CollisionMonitor> collision_monitor_;
 
+  // ClassLoader for smoothing plugin (must be kept alive as long as smoother_ exists)
+  std::unique_ptr<pluginlib::ClassLoader<online_signal_smoothing::SmoothingBaseClass>> smoothing_loader_ = nullptr;
+  
   // Pointer to the (optional) smoothing plugin.
   pluginlib::UniquePtr<online_signal_smoothing::SmoothingBaseClass> smoother_ = nullptr;
 
