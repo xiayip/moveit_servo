@@ -30,6 +30,7 @@
   <depend>moveit_msgs</depend>
   <depend>moveit_ros_planning</depend>
   <depend>moveit_ros_planning_interface</depend>
+  <depend>online_signal_smoothing</depend>
   <depend>pluginlib</depend>
   <depend>realtime_tools</depend>
   <depend>sensor_msgs</depend>

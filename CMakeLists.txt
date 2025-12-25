@@ -12,6 +12,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
     moveit_msgs
     moveit_ros_planning
     moveit_ros_planning_interface
+    online_signal_smoothing
     pluginlib
     rclcpp
     rclcpp_components
