@@ -46,7 +46,7 @@
 #include <geometry_msgs/msg/twist_stamped.hpp>
 #include <zwind_msgs/srv/servo_command_type.hpp>
 #include <zwind_msgs/msg/servo_status.hpp>
-#include <zwind_msgs/srv/record_end_effector_tf.hpp>
+#include <zwind_msgs/srv/record_transform.hpp>
 #include <moveit_servo/servo.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/float64_multi_array.hpp>
@@ -97,10 +97,10 @@ private:
                          const std::shared_ptr<zwind_msgs::srv::ServoCommandType::Response>& response);
 
 
-  /** * \brief The service to record the end-effector to base transform.
+  /** * \brief The service to record the transform between two frames.
    */
-  void recordEndEffectorTF(const std::shared_ptr<zwind_msgs::srv::RecordEndEffectorTF::Request>& request,
-                           const std::shared_ptr<zwind_msgs::srv::RecordEndEffectorTF::Response>& response);
+  void recordTransform(const std::shared_ptr<zwind_msgs::srv::RecordTransform::Request>& request,
+                       const std::shared_ptr<zwind_msgs::srv::RecordTransform::Response>& response);
 
   void jointJogCallback(const control_msgs::msg::JointJog::ConstSharedPtr& msg);
   void twistCallback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr& msg);
@@ -132,7 +132,7 @@ private:
 
   rclcpp::Service<zwind_msgs::srv::ServoCommandType>::SharedPtr switch_command_type_;
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr pause_servo_;
-  rclcpp::Service<zwind_msgs::srv::RecordEndEffectorTF>::SharedPtr record_ee2base_tf_;
+  rclcpp::Service<zwind_msgs::srv::RecordTransform>::SharedPtr record_transform_;
 
   // Used for communication with thread
   std::atomic<bool> stop_servo_;

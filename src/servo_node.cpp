@@ -144,11 +144,11 @@ ServoNode::ServoNode(const rclcpp::NodeOptions& options)
         return pauseServo(request, response);
       });
 
-  // Create service to record current state
-  record_ee2base_tf_ = node_->create_service<zwind_msgs::srv::RecordEndEffectorTF>(
-      "~/record_ee2base_tf", [this](const std::shared_ptr<zwind_msgs::srv::RecordEndEffectorTF::Request>& request,
-                                   const std::shared_ptr<zwind_msgs::srv::RecordEndEffectorTF::Response>& response) {
-        return recordEndEffectorTF(request, response);
+  // Create service to record transform
+  record_transform_ = node_->create_service<zwind_msgs::srv::RecordTransform>(
+      "~/record_transform", [this](const std::shared_ptr<zwind_msgs::srv::RecordTransform::Request>& request,
+                                   const std::shared_ptr<zwind_msgs::srv::RecordTransform::Response>& response) {
+        return recordTransform(request, response);
       });
 
   // Start the servoing loop
@@ -205,19 +205,35 @@ void ServoNode::switchCommandType(const std::shared_ptr<zwind_msgs::srv::ServoCo
   response->success = (request->command_type == static_cast<int8_t>(servo_->getCommandType()));
 }
 
-void ServoNode::recordEndEffectorTF(const std::shared_ptr<zwind_msgs::srv::RecordEndEffectorTF::Request>& request,
-                                  const std::shared_ptr<zwind_msgs::srv::RecordEndEffectorTF::Response>& response)
+void ServoNode::recordTransform(const std::shared_ptr<zwind_msgs::srv::RecordTransform::Request>& request,
+                                const std::shared_ptr<zwind_msgs::srv::RecordTransform::Response>& response)
 {
   std::lock_guard<std::mutex> lock_guard(lock_);
   if (request->clear_recording)
   {
     ee2base_tf_ = std::nullopt;
-    RCLCPP_INFO_STREAM(node_->get_logger(), "Cleared recorded end-effector to base transform.");
-  } else {
-    ee2base_tf_ = request->ee2base_tf;
-    RCLCPP_INFO_STREAM(node_->get_logger(), "Recorded end-effector to base transform.");
+    RCLCPP_INFO_STREAM(node_->get_logger(), "Cleared recorded transform.");
+    response->success = true;
+    return;
   }
-  response->success = true;
+  
+  // Lookup transform from TF
+  try
+  {
+    geometry_msgs::msg::TransformStamped transform_stamped = 
+        planning_scene_monitor_->getTFClient()->lookupTransform(
+            request->base_frame, request->target_frame, tf2::TimePointZero);
+    ee2base_tf_ = transform_stamped;
+    RCLCPP_INFO_STREAM(node_->get_logger(), "Recorded transform from '" << request->target_frame 
+                       << "' to '" << request->base_frame << "'");
+    response->success = true;
+  }
+  catch (tf2::TransformException& ex)
+  {
+    RCLCPP_ERROR(node_->get_logger(), "Could not lookup transform from '%s' to '%s': %s",
+                 request->target_frame.c_str(), request->base_frame.c_str(), ex.what());
+    response->success = false;
+  }
 }
 
 void ServoNode::jointJogCallback(const control_msgs::msg::JointJog::ConstSharedPtr& msg)
