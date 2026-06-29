@@ -38,7 +38,7 @@
   <depend>std_srvs</depend>
   <depend>tf2_eigen</depend>
   <depend>trajectory_msgs</depend>
-  <depend>zwind_msgs</depend>
+  <depend>zephyr_msgs</depend>
 
   <exec_depend>controller_manager</exec_depend>
   <exec_depend>joint_state_broadcaster</exec_depend>

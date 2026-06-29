@@ -44,9 +44,9 @@
 #include <control_msgs/msg/joint_jog.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
-#include <zwind_msgs/srv/servo_command_type.hpp>
-#include <zwind_msgs/msg/servo_status.hpp>
-#include <zwind_msgs/srv/record_transform.hpp>
+#include <zephyr_msgs/srv/servo_command_type.hpp>
+#include <zephyr_msgs/msg/servo_status.hpp>
+#include <zephyr_msgs/srv/record_transform.hpp>
 #include <moveit_servo/servo.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/float64_multi_array.hpp>
@@ -93,14 +93,14 @@ private:
    * Supported command types can be found in utils/datatypes.hpp
    * This service must be used to set the command type before sending any servoing commands.
    */
-  void switchCommandType(const std::shared_ptr<zwind_msgs::srv::ServoCommandType::Request>& request,
-                         const std::shared_ptr<zwind_msgs::srv::ServoCommandType::Response>& response);
+  void switchCommandType(const std::shared_ptr<zephyr_msgs::srv::ServoCommandType::Request>& request,
+                         const std::shared_ptr<zephyr_msgs::srv::ServoCommandType::Response>& response);
 
 
   /** * \brief The service to record the transform between two frames.
    */
-  void recordTransform(const std::shared_ptr<zwind_msgs::srv::RecordTransform::Request>& request,
-                       const std::shared_ptr<zwind_msgs::srv::RecordTransform::Response>& response);
+  void recordTransform(const std::shared_ptr<zephyr_msgs::srv::RecordTransform::Request>& request,
+                       const std::shared_ptr<zephyr_msgs::srv::RecordTransform::Response>& response);
 
   void jointJogCallback(const control_msgs::msg::JointJog::ConstSharedPtr& msg);
   void twistCallback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr& msg);
@@ -127,12 +127,12 @@ private:
 
   rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr multi_array_publisher_;
   rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr trajectory_publisher_;
-  rclcpp::Publisher<zwind_msgs::msg::ServoStatus>::SharedPtr status_publisher_;
+  rclcpp::Publisher<zephyr_msgs::msg::ServoStatus>::SharedPtr status_publisher_;
   rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr debug_pose_publisher_;
 
-  rclcpp::Service<zwind_msgs::srv::ServoCommandType>::SharedPtr switch_command_type_;
+  rclcpp::Service<zephyr_msgs::srv::ServoCommandType>::SharedPtr switch_command_type_;
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr pause_servo_;
-  rclcpp::Service<zwind_msgs::srv::RecordTransform>::SharedPtr record_transform_;
+  rclcpp::Service<zephyr_msgs::srv::RecordTransform>::SharedPtr record_transform_;
 
   // Used for communication with thread
   std::atomic<bool> stop_servo_;

@@ -41,7 +41,7 @@
 #include <chrono>
 #include <control_msgs/msg/joint_jog.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
-#include <zwind_msgs/srv/servo_command_type.hpp>
+#include <zephyr_msgs/srv/servo_command_type.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <signal.h>
 #include <stdio.h>
@@ -144,9 +144,9 @@ private:
 
   rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr twist_pub_;
   rclcpp::Publisher<control_msgs::msg::JointJog>::SharedPtr joint_pub_;
-  rclcpp::Client<zwind_msgs::srv::ServoCommandType>::SharedPtr switch_input_;
+  rclcpp::Client<zephyr_msgs::srv::ServoCommandType>::SharedPtr switch_input_;
 
-  std::shared_ptr<zwind_msgs::srv::ServoCommandType::Request> request_;
+  std::shared_ptr<zephyr_msgs::srv::ServoCommandType::Request> request_;
   double joint_vel_cmd_;
   std::string command_frame_id_;
 };
@@ -159,7 +159,7 @@ KeyboardServo::KeyboardServo() : joint_vel_cmd_(1.0), command_frame_id_{ "panda_
   joint_pub_ = nh_->create_publisher<control_msgs::msg::JointJog>(JOINT_TOPIC, ROS_QUEUE_SIZE);
 
   // Client for switching input types
-  switch_input_ = nh_->create_client<zwind_msgs::srv::ServoCommandType>("servo_node/switch_command_type");
+  switch_input_ = nh_->create_client<zephyr_msgs::srv::ServoCommandType>("servo_node/switch_command_type");
 }
 
 KeyboardReader input;
@@ -311,8 +311,8 @@ int KeyboardServo::keyLoop()
         break;
       case KEYCODE_J:
         RCLCPP_DEBUG(nh_->get_logger(), "j");
-        request_ = std::make_shared<zwind_msgs::srv::ServoCommandType::Request>();
-        request_->command_type = zwind_msgs::srv::ServoCommandType::Request::JOINT_JOG;
+        request_ = std::make_shared<zephyr_msgs::srv::ServoCommandType::Request>();
+        request_->command_type = zephyr_msgs::srv::ServoCommandType::Request::JOINT_JOG;
         if (switch_input_->wait_for_service(std::chrono::seconds(1)))
         {
           auto result = switch_input_->async_send_request(request_);
@@ -328,8 +328,8 @@ int KeyboardServo::keyLoop()
         break;
       case KEYCODE_T:
         RCLCPP_DEBUG(nh_->get_logger(), "t");
-        request_ = std::make_shared<zwind_msgs::srv::ServoCommandType::Request>();
-        request_->command_type = zwind_msgs::srv::ServoCommandType::Request::TWIST;
+        request_ = std::make_shared<zephyr_msgs::srv::ServoCommandType::Request>();
+        request_->command_type = zephyr_msgs::srv::ServoCommandType::Request::TWIST;
         if (switch_input_->wait_for_service(std::chrono::seconds(1)))
         {
           auto result = switch_input_->async_send_request(request_);

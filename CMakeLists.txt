@@ -22,7 +22,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
     std_srvs
     tf2_eigen
     trajectory_msgs
-    zwind_msgs)
+    zephyr_msgs)
 
 find_package(ament_cmake REQUIRED)
 find_package(generate_parameter_library REQUIRED)

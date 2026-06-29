@@ -125,15 +125,15 @@ ServoNode::ServoNode(const rclcpp::NodeOptions& options)
   }
   // Create status publisher
   status_publisher_ =
-      node_->create_publisher<zwind_msgs::msg::ServoStatus>(servo_params_.status_topic, rclcpp::SystemDefaultsQoS());
+      node_->create_publisher<zephyr_msgs::msg::ServoStatus>(servo_params_.status_topic, rclcpp::SystemDefaultsQoS());
 
   // Create debug pose publisher
   debug_pose_publisher_ = node_->create_publisher<geometry_msgs::msg::PoseStamped>("~/debug_pose", rclcpp::SystemDefaultsQoS());
 
   // Create service to enable switching command type
-  switch_command_type_ = node_->create_service<zwind_msgs::srv::ServoCommandType>(
-      "~/switch_command_type", [this](const std::shared_ptr<zwind_msgs::srv::ServoCommandType::Request>& request,
-                                      const std::shared_ptr<zwind_msgs::srv::ServoCommandType::Response>& response) {
+  switch_command_type_ = node_->create_service<zephyr_msgs::srv::ServoCommandType>(
+      "~/switch_command_type", [this](const std::shared_ptr<zephyr_msgs::srv::ServoCommandType::Request>& request,
+                                      const std::shared_ptr<zephyr_msgs::srv::ServoCommandType::Response>& response) {
         return switchCommandType(request, response);
       });
 
@@ -145,9 +145,9 @@ ServoNode::ServoNode(const rclcpp::NodeOptions& options)
       });
 
   // Create service to record transform
-  record_transform_ = node_->create_service<zwind_msgs::srv::RecordTransform>(
-      "~/record_transform", [this](const std::shared_ptr<zwind_msgs::srv::RecordTransform::Request>& request,
-                                   const std::shared_ptr<zwind_msgs::srv::RecordTransform::Response>& response) {
+  record_transform_ = node_->create_service<zephyr_msgs::srv::RecordTransform>(
+      "~/record_transform", [this](const std::shared_ptr<zephyr_msgs::srv::RecordTransform::Request>& request,
+                                   const std::shared_ptr<zephyr_msgs::srv::RecordTransform::Response>& response) {
         return recordTransform(request, response);
       });
 
@@ -189,8 +189,8 @@ void ServoNode::pauseServo(const std::shared_ptr<std_srvs::srv::SetBool::Request
   }
 }
 
-void ServoNode::switchCommandType(const std::shared_ptr<zwind_msgs::srv::ServoCommandType::Request>& request,
-                                  const std::shared_ptr<zwind_msgs::srv::ServoCommandType::Response>& response)
+void ServoNode::switchCommandType(const std::shared_ptr<zephyr_msgs::srv::ServoCommandType::Request>& request,
+                                  const std::shared_ptr<zephyr_msgs::srv::ServoCommandType::Response>& response)
 {
   const bool is_valid = (request->command_type >= static_cast<int8_t>(CommandType::MIN)) &&
                         (request->command_type <= static_cast<int8_t>(CommandType::MAX));
@@ -205,8 +205,8 @@ void ServoNode::switchCommandType(const std::shared_ptr<zwind_msgs::srv::ServoCo
   response->success = (request->command_type == static_cast<int8_t>(servo_->getCommandType()));
 }
 
-void ServoNode::recordTransform(const std::shared_ptr<zwind_msgs::srv::RecordTransform::Request>& request,
-                                const std::shared_ptr<zwind_msgs::srv::RecordTransform::Response>& response)
+void ServoNode::recordTransform(const std::shared_ptr<zephyr_msgs::srv::RecordTransform::Request>& request,
+                                const std::shared_ptr<zephyr_msgs::srv::RecordTransform::Response>& response)
 {
   std::lock_guard<std::mutex> lock_guard(lock_);
   if (request->clear_recording)
@@ -373,7 +373,7 @@ std::optional<KinematicState> ServoNode::processPoseCommand(const moveit::core::
 
 void ServoNode::servoLoop()
 {
-  zwind_msgs::msg::ServoStatus status_msg;
+  zephyr_msgs::msg::ServoStatus status_msg;
   std::optional<KinematicState> next_joint_state = std::nullopt;
   rclcpp::WallRate servo_frequency(1 / servo_params_.publish_period);
 
