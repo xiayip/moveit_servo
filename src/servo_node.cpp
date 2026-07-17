@@ -224,8 +224,12 @@ void ServoNode::recordTransform(const std::shared_ptr<zephyr_msgs::srv::RecordTr
         planning_scene_monitor_->getTFClient()->lookupTransform(
             request->base_frame, request->target_frame, tf2::TimePointZero);
     ee2base_tf_ = transform_stamped;
-    RCLCPP_INFO_STREAM(node_->get_logger(), "Recorded transform from '" << request->target_frame 
-                       << "' to '" << request->base_frame << "'");
+    const auto& t = transform_stamped.transform;
+    RCLCPP_INFO(node_->get_logger(),
+        "Recorded transform from '%s' to '%s': trans=(%.4f, %.4f, %.4f) quat=(%.4f, %.4f, %.4f, %.4f)",
+        request->target_frame.c_str(), request->base_frame.c_str(),
+        t.translation.x, t.translation.y, t.translation.z,
+        t.rotation.x, t.rotation.y, t.rotation.z, t.rotation.w);
     response->success = true;
   }
   catch (tf2::TransformException& ex)
@@ -336,8 +340,8 @@ std::optional<KinematicState> ServoNode::processPoseCommand(const moveit::core::
   // Reject any other command types that had arrived simultaneously.
   new_joint_jog_msg_ = new_twist_msg_ = false;
 
-  const bool command_stale = (node_->now() - latest_pose_.header.stamp) >=
-                             rclcpp::Duration::from_seconds(servo_params_.incoming_command_timeout);
+  const double command_age = (node_->now() - latest_pose_.header.stamp).seconds();
+  const bool command_stale = command_age >= servo_params_.incoming_command_timeout;
   if (!command_stale)
   {
     if (!ee2base_tf_.has_value())
@@ -359,6 +363,10 @@ std::optional<KinematicState> ServoNode::processPoseCommand(const moveit::core::
   }
   else
   {
+    RCLCPP_WARN_THROTTLE(node_->get_logger(), *node_->get_clock(), 500,
+        "[pose_cmd stale] command age %.3fs >= timeout %.3fs (msg stamp=%.3f, now=%.3f). Halting.",
+        command_age, servo_params_.incoming_command_timeout,
+        rclcpp::Time(latest_pose_.header.stamp).seconds(), node_->now().seconds());
     auto result = servo_->smoothHalt(last_commanded_state_);
     new_pose_msg_ = !result.first;
     if (new_pose_msg_)
