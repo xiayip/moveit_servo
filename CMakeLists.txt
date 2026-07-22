@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.22)
 project(moveit_servo LANGUAGES CXX)
 
+# Suppress CMP0167 dev warnings from the binary moveit packages' Boost lookup
+# (FindBoost module removed in CMake 3.30; Boost provides its own config).
+if(POLICY CMP0167)
+  set(CMAKE_POLICY_DEFAULT_CMP0167 NEW)
+endif()
+
 # Common cmake code applied to all moveit packages
 find_package(moveit_common REQUIRED)
 moveit_package()
@@ -12,7 +18,6 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
     moveit_msgs
     moveit_ros_planning
     moveit_ros_planning_interface
-    online_signal_smoothing
     pluginlib
     rclcpp
     rclcpp_components
@@ -44,7 +49,7 @@ generate_parameter_library(moveit_servo_lib_parameters
 # commands to a robot
 add_library(
   moveit_servo_lib_cpp SHARED src/collision_monitor.cpp src/servo.cpp
-                              src/utils/common.cpp src/utils/command.cpp src/utils/logger.cpp)
+                              src/utils/common.cpp src/utils/command.cpp)
 set_target_properties(moveit_servo_lib_cpp PROPERTIES VERSION
                                                       "${moveit_servo_VERSION}")
 target_link_libraries(moveit_servo_lib_cpp moveit_servo_lib_parameters)

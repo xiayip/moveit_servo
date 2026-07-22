@@ -44,7 +44,7 @@
 #include <realtime_tools/thread_priority.hpp>
 #endif
 
-#include <moveit_servo/utils/logger.hpp>
+#include <moveit/utils/logger.hpp>
 #include <moveit_servo/servo_node.hpp>
 
 namespace moveit_servo

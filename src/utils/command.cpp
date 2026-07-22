@@ -38,7 +38,7 @@
  */
 
 #include <moveit_servo/utils/command.hpp>
-#include <moveit_servo/utils/logger.hpp>
+#include <moveit/utils/logger.hpp>
 
 namespace
 {

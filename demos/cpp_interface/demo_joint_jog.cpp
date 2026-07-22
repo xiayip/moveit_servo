@@ -43,7 +43,7 @@
 #include <moveit_servo/servo.hpp>
 #include <moveit_servo/utils/common.hpp>
 #include <rclcpp/rclcpp.hpp>
-#include <moveit_servo/utils/logger.hpp>
+#include <moveit/utils/logger.hpp>
 
 using namespace moveit_servo;
 

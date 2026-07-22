@@ -41,7 +41,7 @@
 #include <moveit_servo/utils/command.hpp>
 #include <moveit_servo/utils/common.hpp>
 #include <rclcpp/rclcpp.hpp>
-#include <moveit_servo/utils/logger.hpp>
+#include <moveit/utils/logger.hpp>
 
 // Disable -Wold-style-cast because all _THROTTLE macros trigger this
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -159,7 +159,7 @@ void Servo::setSmoothingPlugin()
   try
   {
     smoothing_loader_ = std::make_unique<pluginlib::ClassLoader<online_signal_smoothing::SmoothingBaseClass>>(
-        "online_signal_smoothing", "online_signal_smoothing::SmoothingBaseClass");
+        "moveit_core", "online_signal_smoothing::SmoothingBaseClass");
     smoother_ = smoothing_loader_->createUniqueInstance(servo_params_.smoothing_filter_plugin_name);
     RCLCPP_INFO(logger_, "Smoothing plugin instance created successfully");
   }
@@ -185,17 +185,7 @@ void Servo::doSmoothing(KinematicState& state)
 {
   if (smoother_)
   {
-    // Convert Eigen::VectorXd to std::vector<double> for Humble compatibility
-    std::vector<double> positions(state.positions.data(), state.positions.data() + state.positions.size());
-    
-    if (smoother_->doSmoothing(positions))
-    {
-      // Convert back to Eigen::VectorXd
-      for (size_t i = 0; i < positions.size(); ++i)
-      {
-        state.positions[i] = positions[i];
-      }
-    }
+    smoother_->doSmoothing(state.positions, state.velocities, state.accelerations);
   }
 }
 
@@ -203,9 +193,7 @@ void Servo::resetSmoothing(const KinematicState& state)
 {
   if (smoother_)
   {
-    // Convert Eigen::VectorXd to std::vector<double> for Humble compatibility
-    std::vector<double> positions(state.positions.data(), state.positions.data() + state.positions.size());
-    smoother_->reset(positions);
+    smoother_->reset(state.positions, state.velocities, state.accelerations);
   }
 }
 
